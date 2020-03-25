@@ -1,0 +1,135 @@
+# 参考にしたよ
+# https://gist.github.com/mollifier/4979906
+# http://mkit2009.hatenablog.com/entry/2013/01/28/001213
+# https://original-game.com/terminal-zsh2/
+# 色を使用出来るようにする
+
+
+# lsした時の背景を変更する
+# https://www.kwbtblog.com/entry/2019/04/27/023411
+eval $(dircolors -b ~/.dircolors)
+
+autoload -U colors
+colors
+# ↓無効にしないとwsl独特の色味になってしまう
+# zstyle ':completion:*' list-colors "${LS_COLORS}"
+# remove file mark
+unsetopt list_types
+#prompt-----------------------------------------
+#http://www.sirochro.com/note/terminal-zsh-prompt-customize/
+setopt prompt_subst #表示毎にPROMPTで設定されている文字列を評価する
+autoload -Uz vcs_info
+zstyle ':vcs_info:git:*' check-for-changes true
+zstyle ':vcs_info:git:*' stagedstr "%F{yellow}!"
+zstyle ':vcs_info:git:*' unstagedstr "%F{red}+"
+zstyle ':vcs_info:git*' formats "%F{green}%c%u[%b]%f"
+zstyle ':vcs_info:*' actionformats '[%b|%a]'
+precmd () { vcs_info }
+PROMPT_COMMAND='add_line'
+#↓ ユーザー名付き（今の所使用未定）
+#PROMPT='%{${fg[green]}%}%n@%{${reset_color}%}%{${fg[magenta]}%}%~%{${reset_color}%} '
+PROMPT='%{${fg[green]}%}%~%{${reset_color}%} '
+PROMPT=$PROMPT' ${vcs_info_msg_0_} %{${fg[red]}%}%} %{${reset_color}%}
+$ '
+# end of PROMPT---------
+# 環境変数
+# export LANG=ja_JP.UTF-8
+
+# 補完を有効にする
+autoload -U compinit
+compinit -u
+zstyle ':completion:*' menu select
+# ↓無効にしないとwsl独特の色味になってしまう
+# export LSCOLORS=exfxcxdxbxegedabagacad
+# export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
+zstyle ':completion:*' list-colors 'di=34' 'ln=35' 'so=32' 'ex=31' 'bd=46;34' 'cd=43;34'
+#直前のコマンドと同じなら、履歴に残さない
+setopt HIST_IGNORE_DUPS
+# ヒストリの設定
+export HISTFILE=~/.zsh_history
+export HISTSIZE=1000000
+export SAVEHIST=1000000
+# 重複を記録しない
+setopt hist_ignore_dups
+# 開始と終了を記録
+setopt EXTENDED_HISTORY
+# ../ の後は今いるディレクトリを補完しない
+zstyle ':completion:*' ignore-parents parent pwd ..
+# 補完で小文字と大文字無視
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+# 日本語ファイル名を表示可能にする
+setopt print_eight_bit
+# beep を無効にする
+setopt NO_BEEP
+setopt nolistbeep
+# Ctrl+Dでzshを終了しない
+setopt ignore_eof
+# 入力をミスった時に、それに似たコマンドを表示してくれる
+# https://original-game.com/terminal-zsh2/
+setopt correct
+setopt AUTO_LIST
+
+# 各エイリアス
+alias gls="gls --color"
+alias grep="grep -G"
+##################################
+# ls alias
+###################################
+alias ls='ls --color=auto'
+alias ll='ls -alF'
+alias la='ls -A'
+alias lla='ll -A'
+alias l='ls -CF'
+
+alias v="vim"
+alias vi="vim" # vi使いづらい
+
+# sshの長ったらしいコマンド
+# ssh-dp
+# 	args: $1: 開発エンドポイントのURL
+alias ssh-dp='(){ssh -f -N -L 55555:$1:22 tomiyama@52.69.232.62 && ssh -p 55555 glue@127.0.0.1}'
+alias ssh-pg='(){ssh -f -N -L 55556:mn-dev-jp-fac-rdscluster-mart.cluster-cjf6yq6hrdsf.ap-northeast-1.rds.amazonaws.com:5432 tomiyama@52.69.232.62}'
+
+# wsl-open
+alias open='(){wsl-open $1}'
+
+# ターミナルからググる-------------------------------
+g(){
+    if [ $(echo $1 | egrep "^-[cfs]$") ]; then
+        local opt="$1"
+        shift
+    fi
+    local url="https://www.google.co.jp/search?q=${*// /+}"
+    local app="/Applications"
+    local g="${app}/Google Chrome.app"
+    local f="${app}/Firefox.app"
+    local s="${app}/Safari.app"
+    case ${opt} in
+        "-g")   open "${url}" -a "$g";;
+        "-f")   open "${url}" -a "$f";;
+        "-s")   open "${url}" -a "$s";;
+        *)      open "${url}";;
+    esac
+}
+# -----------------------------------------------------
+
+# 補完候補のメニュー選択で、矢印キーの代わりにhjklで移動出来るようにする。
+zmodload zsh/complist
+bindkey -M menuselect 'h' vi-backward-char
+bindkey -M menuselect 'j' vi-down-line-or-history
+bindkey -M menuselect 'k' vi-up-line-or-history
+bindkey -M menuselect 'l' vi-forward-char
+
+# WSLの日本語対応
+# Language
+# WSLの日本語対応化
+# https://www.atmarkit.co.jp/ait/articles/1904/05/news027.html
+# 出力が中途半端に日本語になって面倒。下記コマンドで英語に戻す
+# $ sudo update-locale LANG=en_US.UTF8
+#
+# 日本語設定
+# export LANG=en_US
+# export LANG='ja_JP.UTF-8'
+# export LC_ALL='ja_JP.UTF-8'
+# export LC_MESSAGES='ja_JP.UTF-8'
+export PATH="${GOPATH-"~/go"}/bin:$PATH"

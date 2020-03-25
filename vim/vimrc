@@ -1,0 +1,198 @@
+syntax on
+" Vundle-----------------------------------------------------------------
+" Vundle README:
+" https://github.com/VundleVim/Vundle.vim
+set nocompatible " required by Vundle
+filetype off     " required by Vundle
+" set the runtime path to include Vundle and initialize
+set runtimepath+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+" let Vundle manage Vundle, required by Vundle
+Plugin 'VundleVim/Vundle.vim'
+" 単語や行、段落など(モーション)をかっこで囲んだり、外したりできる
+Plugin 'tpope/vim-surround'
+" 範囲(モーション)の入れ替えを行う
+Plugin 'tommcdo/vim-exchange'
+" Vimからgitを操作する
+Plugin 'tpope/vim-fugitive'
+" インデントに色を付けて見やすくする
+Plugin 'Yggdroot/indentLine'
+" ファイルをtree表示してくれる
+Plugin 'scrooloose/nerdtree'
+" コメントON/OFFを手軽に実行
+Plugin 'tomtom/tcomment_vim'
+" color scheme
+Plugin 'joshdick/onedark.vim'
+" 選択範囲の差分を表示
+Plugin 'AndrewRadev/linediff.vim'
+" pep8に変換してくれる
+Plugin 'tell-k/vim-autopep8'
+" ステータスバーをカッコよく
+Plugin 'itchyny/lightline.vim'
+" 簡単にリクエスト送る
+Plugin 'mattn/webapi-vim'
+" jsonプラグイン
+Plugin 'elzr/vim-json'
+" Go
+Plugin 'fatih/vim-go'
+call vundle#end()          " required by Vundle
+filetype plugin indent on  " required by Vundle
+" end of Vundle settings--------------------------------------------------
+" vimデフォルトの設定を読み込む(慣れたら使わないのがおすすめ)
+if filereadable("/usr/share/vim/vim81/defaults.vim")
+  so /usr/share/vim/vim81/defaults.vim
+endif
+
+" 全角スペースの背景を白に変更
+autocmd Syntax,ColorScheme * highlight FullwidthSpace guibg=white 
+autocmd Syntax,ColorScheme * syn match FullwidthSpace containedin=ALL /　/
+
+" 背景色を暗くする
+autocmd ColorScheme * highlight Normal ctermbg=232
+autocmd ColorScheme * highlight LineNr ctermbg=232
+
+colorscheme onedark
+" UTF-8をデフォルトの文字エンコーディングにする
+" ステータスラインの設定
+" ref@ https://github.com/itchyny/lightline.vim
+let g:lightline = {
+      \ 'colorscheme': 'wombat',
+      \ 'active': {
+      \   'left': [ [ 'mode', 'paste' ],
+      \             [ 'gitbranch', 'readonly', 'filename', 'modified' ] ]
+      \ },
+      \ 'component_function': {
+      \   'gitbranch': 'fugitive#head'
+      \ },
+      \ }
+
+set encoding=utf-8
+set fileencoding=utf-8
+"set scriptencoding=utf-8
+" エンコーディングの検出順を設定
+set fileencodings=utf-8,cp932,eucjp
+set laststatus=2
+
+set title
+set swapfile
+set directory=~/.vim/.swap
+set backup
+set backupdir=~/.vim/.backup
+
+set scrolloff=3
+set noundofile
+set number
+set clipboard+=unnamed
+set autoindent
+set smartindent
+set hlsearch
+set incsearch
+set clipboard=unnamed,autoselect
+" 対応する括弧などをハイライト表示する
+set showmatch
+" 対応括弧に'<'と'>'のペアを追加
+set matchpairs& matchpairs+=<:>
+" 空白文字を可視化
+set list
+set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
+" ビープ音の代わりに画面をフラッシュさせる動作を止める
+set novisualbell
+" beep消す
+set belloff=all
+" jjと入力して挿入モードから抜ける
+inoremap jj <esc>
+" delateキー有効
+set backspace=indent,eol,start
+" 長いテキストの折り返し
+set wrap
+" ESCを二回押すことでハイライトを消す
+nmap <silent> <Esc><Esc> :nohlsearch<CR>
+" j, k による移動を折り返されたテキストでも自然に振る舞うように変更
+nnoremap j gj
+nnoremap k gk
+" vを二回で行末まで選択
+vnoremap v $h
+
+" html括弧補完
+augroup MyXML
+  autocmd!
+  autocmd Filetype xml inoremap <buffer> </ </<C-x><C-o>
+  autocmd Filetype html inoremap <buffer> </ </<C-x><C-o>
+augroup END
+
+" 一定時間操作がない場合のみカーソルライン
+augroup vimrc-auto-cursorline
+  autocmd!
+  autocmd CursorMoved,CursorMovedI * call s:auto_cursorline('CursorMoved')
+  autocmd CursorHold,CursorHoldI * call s:auto_cursorline('CursorHold')
+  autocmd WinEnter * call s:auto_cursorline('WinEnter')
+  autocmd WinLeave * call s:auto_cursorline('WinLeave')
+
+  let s:cursorline_lock = 0
+  function! s:auto_cursorline(event)
+    if a:event ==# 'WinEnter'
+      setlocal cursorline
+      let s:cursorline_lock = 2
+    elseif a:event ==# 'WinLeave'
+      setlocal nocursorline
+    elseif a:event ==# 'CursorMoved'
+      if s:cursorline_lock
+        if 1 < s:cursorline_lock
+          let s:cursorline_lock = 1
+        else
+          setlocal nocursorline
+          let s:cursorline_lock = 0
+        endif
+      endif
+    elseif a:event ==# 'CursorHold'
+      setlocal cursorline
+      let s:cursorline_lock = 1
+    endif
+  endfunction
+augroup END
+
+" 色付け増やす---------------------------
+" haskell
+let hs_highlight_boolean = 1
+let hs_highlight_types = 1
+let hs_highlight_more_types = 1
+let hs_highlight_debug = 1
+let hs_allow_hash_operator = 1
+
+" python
+let py_highlight_boolean = 1
+let py_highlight_types = 1
+let py_highlight_more_types = 1
+let py_highlight_debug = 1
+let py_allow_hash_operator = 1
+
+" Linediffのコマンドショートカット作成
+command! -range Ld  call linediff#Linediff(<line1>, <line2>, {})
+command! -bang  Ldr call linediff#LinediffReset(<q-bang>, {})
+
+" command作成
+command! -nargs=1 Post :call s:Post(<f-args><f-args>)
+" 関数
+function! s:Post(url, json)
+  let res = webapi#http#post(url, json)
+  echo res
+endfunction
+
+
+" Golang setup
+let g:go_highlight_functions = 1
+let g:go_highlight_function_calls = 1
+let g:go_highlight_function_parameters = 1
+let g:go_highlight_types = 1
+let g:go_highlight_operators = 1
+let g:go_highlight_build_constraints = 1
+
+let g:go_def_mode='gopls'
+let g:go_info_mode='gopls'
+let g:go_disable_autoinstall = 0
+
+let g:auto_save = 0
+let g:auto_save_in_insert_mode = 0
+let g:go_template_autocreate = 0
+let g:go_fmt_command = "gofmt"
+let g:syntastic_go_checkers = ['golint', 'govet', 'errcheck']
